@@ -6,19 +6,15 @@ let colIndex = 0
 let rnn
 let vae
 let aiNotes = []
+let crest
 
 function preload() {
   img = loadImage('assets/default-image.png') // Replace with your own image later
   // Optional: Load crest image
   crest = loadImage('assets/hyperfocus-crest.png')
-  // Load Magenta models
-  rnn = new mm.MusicRNN('https://storage.googleapis.com/magentadata/js/checkpoints/music_rnn/basic_rnn')
-  vae = new mm.MusicVAE('https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_4bar_small_q2')
-  rnn.initialize()
-  vae.initialize()
 }
 
-function setup() {
+async function setup() {
   createCanvas(windowWidth, windowHeight)
   imageMode(CENTER)
 
@@ -28,8 +24,14 @@ function setup() {
 
   extractNotesFromImage()
 
+  // Load Magenta models
+  rnn = new mm.MusicRNN('https://storage.googleapis.com/magentadata/js/checkpoints/music_rnn/basic_rnn')
+  vae = new mm.MusicVAE('https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_4bar_small_q2')
+  await rnn.initialize()
+  await vae.initialize()
+
   // Generate AI accompaniment
-  generateAIAccompaniment()
+  await generateAIAccompaniment()
 
   Tone.Transport.bpm.value = 60
   Tone.Transport.loop = true
@@ -75,7 +77,7 @@ function extractNotesFromImage() {
   }
 }
 
-async function generateAIAccompaniment() {
+async async function generateAIAccompaniment() {
   // Use pixel-derived notes as seed for AI generation
   const seed = notes.slice(0, 4).map(n => ({ pitch: n.midi, quantizedStartStep: 0, quantizedEndStep: 4 }))
   const aiSeq = await rnn.continueSequence(seed, 16, 1.0)
