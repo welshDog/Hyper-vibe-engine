@@ -9,6 +9,8 @@ let aiNotes = []
 
 function preload() {
   img = loadImage('assets/default-image.png') // Replace with your own image later
+  // Optional: Load crest image
+  crest = loadImage('assets/hyperfocus-crest.png')
   // Load Magenta models
   rnn = new mm.MusicRNN('https://storage.googleapis.com/magentadata/js/checkpoints/music_rnn/basic_rnn')
   vae = new mm.MusicVAE('https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_4bar_small_q2')

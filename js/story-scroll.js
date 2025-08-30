@@ -8,6 +8,10 @@ function draw() {
   translate(width / 2 - 150, height / 2 - 40)
   const s = min(400 / img.width, 400 / img.height)
   image(img, 0, 0, img.width * s, img.height * s)
+  // Display crest
+  if (crest) {
+    image(crest, -50, -50, 50, 50)
+  }
   pop()
 
   textAlign(CENTER)
