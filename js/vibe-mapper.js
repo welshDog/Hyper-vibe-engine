@@ -77,7 +77,7 @@ function extractNotesFromImage() {
   }
 }
 
-async async function generateAIAccompaniment() {
+async function generateAIAccompaniment() {
   // Use pixel-derived notes as seed for AI generation
   const seed = notes.slice(0, 4).map(n => ({ pitch: n.midi, quantizedStartStep: 0, quantizedEndStep: 4 }))
   const aiSeq = await rnn.continueSequence(seed, 16, 1.0)

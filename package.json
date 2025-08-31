@@ -1,0 +1,28 @@
+{
+  "name": "hyper-vibe-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Hyper Vibe Engine - posts title screens and plays loops",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "express": "^4.18.2",
+    "canvas": "^2.11.2",
+    "tone": "^14.8.39"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "vibe",
+    "music",
+    "p5.js"
+  ],
+  "author": "Hyperfocus Zone",
+  "license": "MIT"
+}
