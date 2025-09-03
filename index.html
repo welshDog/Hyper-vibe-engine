@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRESS START — Vibe Engine</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.min.js"></script>
     <script src="js/vibe-mapper.js"></script>
     <script src="js/story-scroll.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_vae.js"></script>
+    <script src="js/test.js"></script>
     <style>
       body {
         margin: 0;
@@ -17,11 +16,90 @@
         background: #000;
         color: #fff;
         font-family: 'Courier New', monospace;
+        animation: constellation 10s infinite linear;
+      }
+      @keyframes constellation {
+        0% { background-position: 0 0; }
+        100% { background-position: 100px 100px; }
       }
       canvas {
         display: block;
       }
+      #ui {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 10;
+        background: rgba(0,0,0,0.9);
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px solid #00ff00;
+        box-shadow: 0 0 20px rgba(0,255,0,0.5);
+        animation: glow 2s infinite alternate;
+      }
+      @keyframes glow {
+        from { box-shadow: 0 0 20px rgba(0,255,0,0.5); }
+        to { box-shadow: 0 0 30px rgba(0,255,0,1); }
+      }
+      #ui h1 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+        color: #00ff00;
+        text-shadow: 0 0 10px #00ff00;
+      }
+      #ui p {
+        margin: 0 0 20px 0;
+        color: #ccc;
+      }
+      #ui input, #ui button {
+        margin: 5px;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+        background: #333;
+        color: #00ff00;
+        border: 1px solid #00ff00;
+        border-radius: 5px;
+        transition: all 0.3s;
+      }
+      #ui button:hover {
+        background: #00ff00;
+        color: #000;
+        box-shadow: 0 0 10px #00ff00;
+      }
+      #ui input:hover {
+        border-color: #00ff00;
+        box-shadow: 0 0 10px #00ff00;
+      }
+      #lore {
+        margin-top: 20px;
+        padding: 10px;
+        background: rgba(0,0,0,0.7);
+        border-radius: 5px;
+      }
+      #lore h2 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        color: #ffaa00;
+      }
+      #lore p {
+        margin: 0;
+        font-size: 14px;
+        color: #ccc;
+      }
     </style>
   </head>
-  <body></body>
+  <body>
+    <div id="ui">
+      <h1>⚔️ HYPERFOCUS ZONE — VIBE ENGINE</h1>
+      <p>🧙‍♂️ Drop Your Artifact — Trigger the Vibe Engine</p>
+      <input type="file" id="imageUpload" accept="image/*">
+      <button id="playBtn">⚔️ PRESS START — Begin Your Mythic Journey</button>
+      <button id="pauseBtn">🛑 Ritual Break — Save Your Progress</button>
+      <button id="testBtn">🧪 Run Tests</button>
+      <div id="lore">
+        <h2>🧙 Empire Lore Scroll</h2>
+        <p>In the Hyperfocus Empire, images are artifacts that awaken ancient synths and scrolling sagas. Upload yours to join the squad's celebration loop!</p>
+      </div>
+    </div>
+  </body>
 </html>

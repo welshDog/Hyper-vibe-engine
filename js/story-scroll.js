@@ -1,5 +1,5 @@
 let scrollX
-let story = 'THE BROSKI KNIGHT AWAKENS FROM HYPERSLEEP... PRESS START'
+let story = 'IN THE HYPERFOCUS EMPIRE, YOUR ARTIFACT AWAKENS THE ANCIENT SYNTHS... PRESS START TO BEGIN YOUR MYTHIC JOURNEY'
 
 function draw() {
   background(10)
@@ -17,7 +17,7 @@ function draw() {
   textAlign(CENTER)
   textSize(56)
   textStyle(BOLD)
-  text('HYPERFOCUS ZONE — VIBE ENGINE', width / 2 + 120, 120)
+  // text('HYPERFOCUS ZONE — VIBE ENGINE', width / 2 + 120, 120)
 
   textSize(20)
   textAlign(LEFT)
