@@ -1,6 +1,5 @@
-const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js')
+const { Client, GatewayIntentBits } = require('discord.js')
 const express = require('express')
-const { createCanvas } = require('canvas')
 const fs = require('fs')
 const path = require('path')
 
@@ -19,31 +18,20 @@ const PORT = process.env.PORT || 3000
 // Mock vibe data (in real implementation, integrate with the web app)
 const mockVibeData = {
   story: 'THE BROSKI KNIGHT AWAKENS FROM HYPERSLEEP...',
-  imagePath: path.join(__dirname, 'assets', 'default-image.png'),
+  imagePath: path.join(__dirname, '..', 'assets', 'default-image.png'),
 }
 
-// Generate title screen image
-function generateTitleScreen() {
-  const canvas = createCanvas(800, 600)
-  const ctx = canvas.getContext('2d')
+// Generate title screen text (no canvas needed)
+function generateTitleScreenText() {
+  return `
+🎮 **HYPERFOCUS ZONE** 🎮
+⚔️ **VIBE ENGINE ACTIVATED** ⚔️
 
-  // Background
-  ctx.fillStyle = '#000'
-  ctx.fillRect(0, 0, 800, 600)
+${mockVibeData.story}
 
-  // Title
-  ctx.fillStyle = '#fff'
-  ctx.font = 'bold 48px Courier New'
-  ctx.textAlign = 'center'
-  ctx.fillText('HYPERFOCUS ZONE', 400, 150)
-  ctx.fillText('VIBE ENGINE', 400, 220)
-
-  // Story
-  ctx.font = '20px Courier New'
-  ctx.textAlign = 'left'
-  ctx.fillText(mockVibeData.story, 50, 550)
-
-  return canvas.toBuffer()
+🖼️ *Pixel → Music → Myth*
+🎵 *Upload images to generate MIDI vibes*
+  `.trim()
 }
 
 // Discord commands
@@ -52,20 +40,34 @@ client.on('messageCreate', async (message) => {
 
   if (message.content === '!vibe') {
     try {
-      const imageBuffer = generateTitleScreen()
-      const attachment = new AttachmentBuilder(imageBuffer, {
-        name: 'vibe-title.png',
-      })
+      const titleScreen = generateTitleScreenText()
 
       await message.reply({
-        content:
-          '🎮 **HYPER VIBE ENGINE ACTIVATED** 🎮\n*Pixel → Music → Myth*\n\n' +
-          mockVibeData.story,
-        files: [attachment],
+        content: titleScreen,
       })
     } catch (error) {
       console.error(error)
       message.reply('Error generating vibe screen!')
+    }
+  }
+
+  if (message.content === '!midi') {
+    try {
+      // List available MIDI files
+      const midiFiles = fs.readdirSync(path.join(__dirname, '..'))
+        .filter(file => file.endsWith('.mid'))
+        .slice(-5) // Get last 5 files
+
+      const midiList = midiFiles.length > 0
+        ? midiFiles.map(file => `🎵 ${file}`).join('\n')
+        : 'No MIDI files found yet!'
+
+      await message.reply({
+        content: `🎼 **Latest MIDI Files:**\n${midiList}\n\nUse \`!vibe\` to generate new vibes!`,
+      })
+    } catch (error) {
+      console.error(error)
+      message.reply('Error listing MIDI files!')
     }
   }
 })

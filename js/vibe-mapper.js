@@ -9,6 +9,7 @@ let colIndex = 0
 let crest
 let uploadInput
 let isAudioStarted = false
+let particles = []
 
 function userStartAudio() {
   return Tone.start();
@@ -24,7 +25,12 @@ function preload() {
 
 async function setup() {
   console.log('setup start')
-  createCanvas(windowWidth, windowHeight)
+
+  // Create canvas to fit inside arcade cabinet screen
+  const cabinetScreen = document.querySelector('.cabinet-screen')
+  const canvas = createCanvas(500, 300)
+  canvas.parent(cabinetScreen)
+
   imageMode(CENTER)
 
   synth = new Tone.PolySynth(Tone.Synth).toDestination()
@@ -58,7 +64,72 @@ async function setup() {
     colIndex++
   }, '8n').start(0)
 
-  // UI elements
+  // Setup arcade controls
+  setupArcadeControls()
+
+  // Create 8-bit particles
+  createParticles()
+
+  console.log('setup end')
+}
+
+function setupArcadeControls() {
+  // PRESS START banner click
+  const pressStartBanner = select('#pressStartBanner')
+  pressStartBanner.mousePressed(() => {
+    userStartAudio().then(() => {
+      isAudioStarted = true
+      Tone.Transport.start()
+      pressStartBanner.hide()
+      // Start sound
+      synth.triggerAttackRelease('G4', '4n');
+    })
+  })
+
+  // Joystick interaction
+  const joystick = select('#joystick')
+  joystick.mousePressed(() => {
+    if (isAudioStarted) {
+      // Joystick sound effect
+      synth.triggerAttackRelease('C4', '8n');
+    }
+  })
+
+  // Arcade buttons
+  const redBtn = select('#redBtn')
+  const blueBtn = select('#blueBtn')
+  const yellowBtn = select('#yellowBtn')
+  const greenBtn = select('#greenBtn')
+
+  redBtn.mousePressed(() => {
+    if (isAudioStarted) {
+      synth.triggerAttackRelease('E4', '8n');
+      // Could trigger different effects
+    }
+  })
+
+  blueBtn.mousePressed(() => {
+    if (isAudioStarted) {
+      synth.triggerAttackRelease('G4', '8n');
+      // Could trigger different effects
+    }
+  })
+
+  yellowBtn.mousePressed(() => {
+    if (isAudioStarted) {
+      synth.triggerAttackRelease('A4', '8n');
+      // Could trigger different effects
+    }
+  })
+
+  greenBtn.mousePressed(() => {
+    if (isAudioStarted) {
+      synth.triggerAttackRelease('C5', '8n');
+      // Could trigger different effects
+    }
+  })
+
+  // Hidden UI panel (for advanced controls)
   let uploadInput = select('#imageUpload')
   uploadInput.changed(handleFile)
 
@@ -68,7 +139,6 @@ async function setup() {
       isAudioStarted = true
       Tone.Transport.start()
       select('#ui').hide()
-      // Start sound
       synth.triggerAttackRelease('G4', '4n');
     })
   })
@@ -76,23 +146,96 @@ async function setup() {
   let pauseBtn = select('#pauseBtn')
   pauseBtn.mousePressed(() => {
     Tone.Transport.pause()
-    // Pause sound
-    synth.triggerAttackRelease('A3', '4n');
+    if (isAudioStarted) synth.triggerAttackRelease('A3', '4n');
   })
 
   let testBtn = select('#testBtn')
   testBtn.mousePressed(() => {
     runTests();
   })
+}
 
-  // userStartAudio()
-  // Tone.Transport.start()
-  console.log('setup end')
+function createParticles() {
+  const particlesContainer = document.getElementById('particles')
+
+  for (let i = 0; i < 20; i++) {
+    const particle = document.createElement('div')
+    particle.className = 'particle'
+    particle.style.left = Math.random() * 100 + '%'
+    particle.style.top = Math.random() * 100 + '%'
+    particle.style.animationDelay = Math.random() * 3 + 's'
+    particlesContainer.appendChild(particle)
+  }
+}
+
+function draw() {
+  // Clear background with solid black
+  background(0, 0, 0); // Pure black background
+
+  // Draw the image in the center
+  push()
+  translate(width / 2, height / 2)
+  const s = min(200 / img.width, 200 / img.height)
+  image(img, 0, 0, img.width * s, img.height * s)
+
+  // Display crest
+  if (crest) {
+    image(crest, -100, -100, 40, 40)
+  }
+  pop()
+
+  // Draw arcade-style UI elements
+  drawArcadeUI()
+
+  // Update particles
+  updateParticles()
+}
+
+function drawNeonGrid() {
+  // Disabled for solid black background
+  // This function is no longer called to maintain pure black background
+}
+
+function drawArcadeUI() {
+  // Draw some retro-style elements
+  fill(0, 255, 0, 100)
+  noStroke()
+  textAlign(CENTER)
+  textSize(12)
+  text('HYPERFOCUS ZONE', width / 2, 30)
+
+  // Draw corner brackets for retro feel
+  stroke(0, 255, 0)
+  strokeWeight(2)
+  noFill()
+
+  // Top-left corner
+  line(10, 10, 30, 10)
+  line(10, 10, 10, 30)
+
+  // Top-right corner
+  line(width - 30, 10, width - 10, 10)
+  line(width - 10, 10, width - 10, 30)
+
+  // Bottom-left corner
+  line(10, height - 30, 10, height - 10)
+  line(10, height - 10, 30, height - 10)
+
+  // Bottom-right corner
+  line(width - 30, height - 10, width - 10, height - 10)
+  line(width - 10, height - 30, width - 10, height - 10)
+}
+
+function updateParticles() {
+  // Particles are handled by CSS animations
 }
 
 function mousePressed() {
   userStartAudio().then(() => {
-    Tone.Transport.start();
+    if (!isAudioStarted) {
+      Tone.Transport.start();
+      isAudioStarted = true;
+    }
   });
 }
 
@@ -103,7 +246,7 @@ function handleFile() {
       extractNotesFromImage();
       colIndex = 0; // Reset loop
       // Sound cue for upload
-      synth.triggerAttackRelease('C5', '8n');
+      if (isAudioStarted) synth.triggerAttackRelease('C5', '8n');
     });
   }
 }
@@ -113,6 +256,8 @@ function extractNotesFromImage() {
   const w = img.width
   const h = img.height
   const N = 16
+
+  notes = [] // Clear existing notes
 
   for (let i = 0; i < N; i++) {
     const x = Math.floor(map(i, 0, N - 1, 0, w - 1))
@@ -127,7 +272,7 @@ function extractNotesFromImage() {
     }
     const avg = sum / (h / 6)
     const midi = Math.round(map(avg, 0, 255, 48, 84))
-      const chord = [midi, midi + 4, midi + 7].map((m) => Tone.Midi(m).toFrequency())
-      notes.push({ midi, notes: chord })
-    }
+    const chord = [midi, midi + 4, midi + 7].map((m) => Tone.Midi(m).toFrequency())
+    notes.push({ midi, notes: chord })
   }
+}

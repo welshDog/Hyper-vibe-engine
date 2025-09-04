@@ -2,31 +2,50 @@ let scrollX
 let story = 'IN THE HYPERFOCUS EMPIRE, YOUR ARTIFACT AWAKENS THE ANCIENT SYNTHS... PRESS START TO BEGIN YOUR MYTHIC JOURNEY'
 
 function draw() {
-  background(10)
+  // Only draw if we're in the arcade context
+  if (typeof img !== 'undefined' && img) {
+    // Draw the scrolling story text at the bottom of the screen
+    fill(0, 255, 0, 200)
+    textAlign(LEFT)
+    textSize(8)
+    textFont('monospace')
 
-  push()
-  translate(width / 2 - 150, height / 2 - 40)
-  const s = min(400 / img.width, 400 / img.height)
-  image(img, 0, 0, img.width * s, img.height * s)
-  // Display crest
-  if (crest) {
-    image(crest, -50, -50, 50, 50)
+    // Draw story text with scrolling effect
+    text(story, scrollX, height - 20)
+    scrollX -= 0.8
+
+    if (scrollX < -textWidth(story)) {
+      scrollX = width
+    }
+
+    // Draw some retro-style decorations
+    drawRetroDecorations()
   }
-  pop()
+}
 
-  textAlign(CENTER)
-  textSize(56)
-  textStyle(BOLD)
-  // text('HYPERFOCUS ZONE — VIBE ENGINE', width / 2 + 120, 120)
+function drawRetroDecorations() {
+  // Draw some pixel-style borders
+  stroke(0, 255, 0, 100)
+  strokeWeight(1)
+  noFill()
 
-  textSize(20)
-  textAlign(LEFT)
-  text(story, scrollX, height - 60)
-  scrollX -= 1.2
-  if (scrollX < -textWidth(story)) scrollX = width
+  // Corner pixels
+  rect(5, 5, 10, 10)
+  rect(width - 15, 5, 10, 10)
+  rect(5, height - 15, 10, 10)
+  rect(width - 15, height - 15, 10, 10)
+
+  // Status indicators
+  fill(255, 255, 0, 150)
+  noStroke()
+  textSize(6)
+  textAlign(RIGHT)
+  text('READY', width - 20, 20)
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight)
-  scrollX = width
+  // Reset scroll position when window resizes
+  if (typeof width !== 'undefined') {
+    scrollX = width
+  }
 }

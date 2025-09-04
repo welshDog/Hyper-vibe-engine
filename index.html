@@ -9,22 +9,302 @@
     <script src="js/vibe-mapper.js"></script>
     <script src="js/story-scroll.js"></script>
     <script src="js/test.js"></script>
+    <script>
+      // Arcade-style interactions
+      document.addEventListener('DOMContentLoaded', function() {
+        const pressStartBanner = document.getElementById('pressStartBanner');
+        const ui = document.getElementById('ui');
+        let gameStarted = false;
+
+        // PRESS START banner interaction
+        pressStartBanner.addEventListener('click', function() {
+          if (!gameStarted) {
+            gameStarted = true;
+            pressStartBanner.style.display = 'none';
+
+            // Play arcade start sound (if Web Audio is available)
+            try {
+              const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+              const oscillator = audioContext.createOscillator();
+              const gainNode = audioContext.createGain();
+
+              oscillator.connect(gainNode);
+              gainNode.connect(audioContext.destination);
+
+              oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+              oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+
+              gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+              gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+              oscillator.start(audioContext.currentTime);
+              oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+              // Fallback if Web Audio isn't available
+              console.log('Arcade start sound played');
+            }
+          }
+        });
+
+        // Joystick interaction
+        const joystick = document.getElementById('joystick');
+        joystick.addEventListener('click', function() {
+          joystick.style.transform = 'scale(1.1)';
+          setTimeout(() => {
+            joystick.style.transform = 'scale(1)';
+          }, 150);
+        });
+
+        // Arcade button interactions
+        const buttons = document.querySelectorAll('.arcade-btn');
+        buttons.forEach(button => {
+          button.addEventListener('click', function() {
+            button.style.transform = 'translateY(-2px)';
+            setTimeout(() => {
+              button.style.transform = 'translateY(0)';
+            }, 150);
+          });
+        });
+
+        // Easter egg: Double-click joystick to show hidden UI
+        let clickCount = 0;
+        joystick.addEventListener('click', function() {
+          clickCount++;
+          if (clickCount === 2) {
+            ui.style.display = 'block';
+            clickCount = 0;
+          }
+          setTimeout(() => clickCount = 0, 500);
+        });
+
+        // Keyboard controls for arcade feel
+        document.addEventListener('keydown', function(event) {
+          if (event.code === 'Space') {
+            event.preventDefault();
+            pressStartBanner.click();
+          }
+        });
+
+        // Add some retro cursor effects
+        document.addEventListener('mousemove', function(e) {
+          const cursor = document.querySelector('.arcade-cabinet');
+          if (cursor) {
+            const rect = cursor.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+              cursor.style.boxShadow = '0 0 50px rgba(0, 255, 0, 0.5), inset 0 0 50px rgba(0, 0, 0, 0.8)';
+            } else {
+              cursor.style.boxShadow = '0 0 50px rgba(0, 255, 0, 0.3), inset 0 0 50px rgba(0, 0, 0, 0.8)';
+            }
+          }
+        });
+      });
+    </script>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         overflow: hidden;
         background: #000;
         color: #fff;
-        font-family: 'Courier New', monospace;
-        animation: constellation 10s infinite linear;
+        font-family: 'Press Start 2P', monospace;
+        position: relative;
       }
-      @keyframes constellation {
-        0% { background-position: 0 0; }
-        100% { background-position: 100px 100px; }
+
+      /* Neon Grid Background - Disabled for solid black background */
+      .grid-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000; /* Solid black background */
+        z-index: 1;
       }
+
+      @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+      }
+
+      /* Scanlines Overlay */
+      .scanlines {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.1),
+          rgba(0, 0, 0, 0.1) 2px,
+          transparent 2px,
+          transparent 4px
+        );
+        pointer-events: none;
+        z-index: 5;
+      }
+
       canvas {
         display: block;
+        position: relative;
+        z-index: 2;
       }
+
+      /* Arcade Cabinet */
+      .arcade-cabinet {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 400px;
+        background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+        border: 8px solid #444;
+        border-radius: 20px 20px 0 0;
+        box-shadow:
+          0 0 50px rgba(0, 255, 0, 0.3),
+          inset 0 0 50px rgba(0, 0, 0, 0.8);
+        z-index: 3;
+      }
+
+      .cabinet-screen {
+        position: absolute;
+        top: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        height: 300px;
+        background: #000;
+        border: 4px solid #666;
+        border-radius: 10px;
+        box-shadow: inset 0 0 30px rgba(0, 255, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .cabinet-title {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        color: #00ff00;
+        text-shadow: 0 0 10px #00ff00;
+        text-align: center;
+        z-index: 4;
+      }
+
+      /* Joystick */
+      .joystick {
+        position: absolute;
+        bottom: 80px;
+        left: 80px;
+        width: 60px;
+        height: 60px;
+        background: radial-gradient(circle, #333, #111);
+        border: 4px solid #666;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s;
+        z-index: 4;
+      }
+
+      .joystick:hover {
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        transform: scale(1.1);
+      }
+
+      .joystick::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        background: #666;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+      }
+
+      /* Arcade Buttons */
+      .arcade-buttons {
+        position: absolute;
+        bottom: 60px;
+        right: 80px;
+        display: flex;
+        gap: 15px;
+        z-index: 4;
+      }
+
+      .arcade-btn {
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: 'Press Start 2P', monospace;
+        transition: all 0.3s;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .arcade-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      .arcade-btn:active {
+        transform: translateY(0);
+      }
+
+      .btn-red { background: radial-gradient(circle, #ff4444, #cc0000); }
+      .btn-blue { background: radial-gradient(circle, #4444ff, #0000cc); }
+      .btn-yellow { background: radial-gradient(circle, #ffff44, #cccc00); }
+      .btn-green { background: radial-gradient(circle, #44ff44, #00cc00); }
+
+      .btn-red:hover { box-shadow: 0 0 20px rgba(255, 68, 68, 0.6); }
+      .btn-blue:hover { box-shadow: 0 0 20px rgba(68, 68, 255, 0.6); }
+      .btn-yellow:hover { box-shadow: 0 0 20px rgba(255, 255, 68, 0.6); }
+      .btn-green:hover { box-shadow: 0 0 20px rgba(68, 255, 68, 0.6); }
+
+      /* PRESS START Banner */
+      .press-start-banner {
+        position: absolute;
+        top: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 24px;
+        color: #00ff00;
+        text-shadow:
+          0 0 10px #00ff00,
+          0 0 20px #00ff00,
+          0 0 30px #00ff00;
+        text-align: center;
+        animation: flash 1.5s infinite alternate;
+        z-index: 4;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 20px 40px;
+        border: 3px solid #00ff00;
+        border-radius: 10px;
+        box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+      }
+
+      @keyframes flash {
+        0% { opacity: 1; }
+        100% { opacity: 0.3; }
+      }
+
+      /* Hidden UI Panel */
       #ui {
         position: absolute;
         top: 20px;
@@ -36,21 +316,27 @@
         border: 2px solid #00ff00;
         box-shadow: 0 0 20px rgba(0,255,0,0.5);
         animation: glow 2s infinite alternate;
+        display: none; /* Hidden by default */
       }
+
       @keyframes glow {
         from { box-shadow: 0 0 20px rgba(0,255,0,0.5); }
         to { box-shadow: 0 0 30px rgba(0,255,0,1); }
       }
+
       #ui h1 {
         margin: 0 0 10px 0;
-        font-size: 24px;
+        font-size: 12px;
         color: #00ff00;
         text-shadow: 0 0 10px #00ff00;
       }
+
       #ui p {
         margin: 0 0 20px 0;
         color: #ccc;
+        font-size: 10px;
       }
+
       #ui input, #ui button {
         margin: 5px;
         padding: 10px;
@@ -61,34 +347,89 @@
         border-radius: 5px;
         transition: all 0.3s;
       }
+
       #ui button:hover {
         background: #00ff00;
         color: #000;
         box-shadow: 0 0 10px #00ff00;
       }
+
       #ui input:hover {
         border-color: #00ff00;
         box-shadow: 0 0 10px #00ff00;
       }
-      #lore {
-        margin-top: 20px;
-        padding: 10px;
-        background: rgba(0,0,0,0.7);
-        border-radius: 5px;
+
+      /* 8-bit Particles */
+      .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 6;
       }
-      #lore h2 {
-        margin: 0 0 10px 0;
-        font-size: 18px;
-        color: #ffaa00;
+
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #00ff00;
+        border-radius: 50%;
+        animation: float 3s infinite ease-in-out;
       }
-      #lore p {
-        margin: 0;
-        font-size: 14px;
-        color: #ccc;
+
+      .particle:nth-child(2n) {
+        background: #ffaa00;
+        animation-duration: 4s;
+      }
+
+      .particle:nth-child(3n) {
+        background: #ff4444;
+        animation-duration: 5s;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+        50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
       }
     </style>
   </head>
   <body>
+    <!-- Neon Grid Background -->
+    <div class="grid-background"></div>
+
+    <!-- Scanlines Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- 8-bit Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- PRESS START Banner -->
+    <div class="press-start-banner" id="pressStartBanner">
+      PRESS START
+    </div>
+
+    <!-- Arcade Cabinet -->
+    <div class="arcade-cabinet">
+      <div class="cabinet-title">HYPER VIBE ENGINE</div>
+      <div class="cabinet-screen">
+        <!-- Canvas will be inserted here by p5.js -->
+      </div>
+
+      <!-- Joystick -->
+      <div class="joystick" id="joystick"></div>
+
+      <!-- Arcade Buttons -->
+      <div class="arcade-buttons">
+        <button class="arcade-btn btn-red" id="redBtn">A</button>
+        <button class="arcade-btn btn-blue" id="blueBtn">B</button>
+        <button class="arcade-btn btn-yellow" id="yellowBtn">C</button>
+        <button class="arcade-btn btn-green" id="greenBtn">D</button>
+      </div>
+    </div>
+
+    <!-- Hidden UI Panel (accessible via secret button) -->
     <div id="ui">
       <h1>⚔️ HYPERFOCUS ZONE — VIBE ENGINE</h1>
       <p>🧙‍♂️ Drop Your Artifact — Trigger the Vibe Engine</p>
