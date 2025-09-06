@@ -9,15 +9,22 @@
     "server": "node server.js",
     "web": "python -m http.server 8000",
     "midi": "python python/midi_exporter.py",
-    "health": "python python/midi_exporter.py assets/default-image.png -o health_check.mid"
+    "health": "python python/midi_exporter.py assets/default-image.png -o health_check.mid",
+    "test": "python -m unittest python/test_midi_exporter.py",
+    "test:python": "python -m unittest python/test_midi_exporter.py",
+    "test:coverage": "python -m coverage run -m unittest python/test_midi_exporter.py && python -m coverage report",
+    "lint": "eslint js/*.js server.js",
+    "type-check": "python -m mypy python/midi_exporter.py"
   },
   "dependencies": {
     "discord.js": "^14.22.1",
     "express": "^4.21.2",
+    "socket.io": "^4.8.1",
     "tone": "^14.9.17"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "eslint": "^8.57.0"
   },
   "keywords": [
     "discord",

@@ -1,0 +1,43 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "off",
+    "semi": ["error", "always"],
+    "quotes": ["error", "single"]
+  },
+  "globals": {
+    "createCanvas": "readonly",
+    "background": "readonly",
+    "fill": "readonly",
+    "ellipse": "readonly",
+    "rect": "readonly",
+    "text": "readonly",
+    "loadImage": "readonly",
+    "image": "readonly",
+    "width": "readonly",
+    "height": "readonly",
+    "mouseX": "readonly",
+    "mouseY": "readonly",
+    "frameCount": "readonly",
+    "TWO_PI": "readonly",
+    "PI": "readonly",
+    "sin": "readonly",
+    "cos": "readonly",
+    "random": "readonly",
+    "map": "readonly",
+    "constrain": "readonly",
+    "select": "readonly",
+    "Tone": "readonly",
+    "io": "readonly"
+  }
+}

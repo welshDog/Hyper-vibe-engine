@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r python/requirements.txt
+
+      - name: Run Python tests
+        run: |
+          cd python
+          python -m unittest test_midi_exporter.py -v
+
+      - name: Run mypy type checking
+        run: python -m mypy python/midi_exporter.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check Node.js dependencies
+        run: npm list --depth=0
+
+      - name: Test MIDI generation
+        run: python python/midi_exporter.py "assets/Hyperfocus Zone Name logo.png" -t melody -b 120 -d 5 -o "test_output.mid"
+
+      - name: Verify output file exists
+        run: ls -la test_output.mid

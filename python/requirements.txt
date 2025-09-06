@@ -3,3 +3,4 @@ pretty_midi==0.2.10
 numpy==1.26.4
 setuptools==80.0.0
 mypy==1.11.2
+coverage==7.6.1

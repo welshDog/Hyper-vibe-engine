@@ -1,4 +1,5 @@
-const { Client, GatewayIntentBits } = require('discord.js')
+const { Client, GatewayIntentBits, SlashCommandBuilder, REST } = require('discord.js')
+const { Routes } = require('discord-api-types/v9')
 const express = require('express')
 const fs = require('fs')
 const path = require('path')
@@ -13,6 +14,7 @@ const client = new Client({
 })
 
 const TOKEN = process.env.DISCORD_TOKEN // Set your bot token in env
+const CLIENT_ID = process.env.DISCORD_CLIENT_ID // Add this to env
 const PORT = process.env.PORT || 3000
 
 // Mock vibe data (in real implementation, integrate with the web app)
@@ -34,7 +36,80 @@ ${mockVibeData.story}
   `.trim()
 }
 
-// Discord commands
+// Register slash commands
+const commands = [
+  new SlashCommandBuilder()
+    .setName('vibe')
+    .setDescription('Generate a mythic vibe screen'),
+
+  new SlashCommandBuilder()
+    .setName('vibe_generate')
+    .setDescription('Generate MIDI from an image URL')
+    .addStringOption(option =>
+      option.setName('image_url')
+        .setDescription('URL of the image to convert to MIDI')
+        .setRequired(true)),
+
+  new SlashCommandBuilder()
+    .setName('vibe_help')
+    .setDescription('Show available vibe commands'),
+]
+
+// Register commands with Discord
+const rest = new REST({ version: '9' }).setToken(TOKEN)
+
+async function registerCommands() {
+  try {
+    console.log('Started refreshing application (/) commands.')
+
+    await rest.put(
+      Routes.applicationCommands(CLIENT_ID),
+      { body: commands },
+    )
+
+    console.log('Successfully reloaded application (/) commands.')
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// Discord slash command handler
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isCommand()) return
+
+  const { commandName } = interaction
+
+  if (commandName === 'vibe') {
+    try {
+      const titleScreen = generateTitleScreenText()
+
+      await interaction.reply({
+        content: titleScreen,
+      })
+    } catch (error) {
+      console.error(error)
+      await interaction.reply('Error generating vibe screen!')
+    }
+  } else if (commandName === 'vibe_generate') {
+    const imageUrl = interaction.options.getString('image_url')
+
+    await interaction.reply(`🎵 Processing image from: ${imageUrl}\n*This feature is coming soon!*`)
+  } else if (commandName === 'vibe_help') {
+    const helpText = `
+🎮 **Hyper Vibe Engine Commands** 🎮
+
+**/vibe** - Generate a mythic vibe screen
+**/vibe_generate** - Generate MIDI from an image URL
+**/vibe_help** - Show this help message
+
+*Upload images to the web interface at: http://localhost:3000*
+    `.trim()
+
+    await interaction.reply(helpText)
+  }
+})
+
+// Legacy message handler for backward compatibility
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return
 
@@ -83,8 +158,9 @@ app.get('/title-screen', (req, res) => {
   res.send(imageBuffer)
 })
 
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log('Hyper Vibe Bot is online!')
+  await registerCommands()
 })
 
 app.listen(PORT, () => {

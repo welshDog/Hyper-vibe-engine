@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  hyper-vibe-engine:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+
+  # Optional: Add Python service for MIDI processing
+  midi-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    volumes:
+      - ./python:/app
+      - ./assets:/app/assets
+      - ./outputs:/app/outputs
+    working_dir: /app
+    command: python midi_exporter.py ../assets/Hyperfocus\ Zone\ Name\ logo.png -o ../outputs/test.mid
