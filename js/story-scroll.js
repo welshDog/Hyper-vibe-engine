@@ -30,19 +30,22 @@ function analyzeImageForStory(img) {
     // Analyze brightness and contrast
     const analysis = analyzeBrightnessContrast(img)
     brightness = analysis.brightness
-  contrast = analysis.contrast
+    contrast = analysis.contrast
 
-  // Determine mood based on analysis
-  imageMood = determineMood(brightness, contrast, dominantColors)
+    // Determine mood based on analysis
+    imageMood = determineMood(brightness, contrast, dominantColors)
 
-  // Generate dynamic story
-  dynamicStory = generateDynamicStory(imageMood, dominantColors, brightness, contrast)
+    // Generate dynamic story
+    dynamicStory = generateDynamicStory(imageMood, dominantColors, brightness, contrast)
 
-  // Update the scrolling story
-  story = dynamicStory.toUpperCase()
+    // Update the scrolling story
+    story = dynamicStory.toUpperCase()
 
-  storyGenerated = true
-  console.log('Dynamic story generated:', story)
+    storyGenerated = true
+    console.log('Dynamic story generated:', story)
+  } catch (error) {
+    console.error('Error analyzing image for story:', error)
+  }
 }
 
 function analyzeDominantColors(img) {

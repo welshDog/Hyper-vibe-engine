@@ -1,12 +1,4 @@
-#!/usimport os
-import sys
-import tempfile
-import unittest
-
-# Add the current directory to the path
-sys.path.insert(0, os.path.dirname(__file__))
-
-from midi_exporter import extract_notes_from_image, generate_melody_track python3
+#!/usr/bin/env python3
 """
 Basic tests for Hyper Vibe MIDI Exporter
 """
@@ -16,7 +8,7 @@ import sys
 import tempfile
 import unittest
 
-# Add the parent directory to the path
+# Add the current directory to the path
 sys.path.insert(0, os.path.dirname(__file__))
 
 from midi_exporter import extract_notes_from_image, generate_melody_track

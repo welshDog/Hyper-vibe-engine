@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
 Hyper Vibe MIDI Exporter - Multi-Track Edition
-Exports pixel-derived notes to multi-track MIDI files with melody, harmony, percussion, and bass.
+Exports pixel-derived notes to multi-track MIDI files with melody, harmony,
+percussion, and bass.
 """
 
 import argparse
 import sys
 import os
 import random
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from PIL import Image  # type: ignore
-import pretty_midi
+import pretty_midi  # type: ignore
 import numpy as np
 
 # Constants
@@ -21,12 +22,12 @@ def extract_notes_from_image(
     image_path: str, num_slices: int = 16, max_width: int = 1000
 ) -> List[Dict[str, Any]]:
     """
-    Extract MIDI notes from image brightness with enhanced error handling and performance optimization.
+    Extract MIDI notes from image brightness with enhanced error handling.
 
     Args:
         image_path: Path to the input image file
         num_slices: Number of vertical slices to analyze (default: 16)
-        max_width: Maximum width to resize large images for performance (default: 1000)
+        max_width: Maximum width to resize large images for performance
 
     Returns:
         List of note dictionaries with MIDI data
@@ -49,7 +50,8 @@ def extract_notes_from_image(
         file_ext = os.path.splitext(image_path)[1].lower()
         if file_ext not in valid_extensions:
             print(
-                f"Warning: Unsupported file extension {file_ext}. Attempting to load anyway..."
+                f"Warning: Unsupported file extension {file_ext}. "
+                "Attempting to load anyway..."
             )
 
         # Load and process image
@@ -67,9 +69,10 @@ def extract_notes_from_image(
             new_height = int(new_width * aspect_ratio)
 
             print(
-                f"Resizing large image: {orig_width}x{orig_height} → {new_width}x{new_height}"
+                f"Resizing large image: {orig_width}x{orig_height} → "
+                f"{new_width}x{new_height}"
             )
-            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)  # type: ignore
             print("Resize completed. Processing optimized for performance.")
 
         # Convert to grayscale for brightness analysis
@@ -87,35 +90,29 @@ def extract_notes_from_image(
 
         notes = []
         for i in range(num_slices):
-            try:
-                # Calculate column position
-                x = int(np.interp(i, [0, num_slices - 1], [0, width - 1]))
+            # Calculate column position
+            x = int(np.interp(i, [0, num_slices - 1], [0, width - 1]))
 
-                # Extract column and calculate average brightness
-                column = pixels[:, x]
-                avg_brightness = np.mean(column)
+            # Extract column and calculate average brightness
+            column = pixels[:, x]
+            avg_brightness = np.mean(column)
+            # Convert brightness to MIDI note (C3 to C6 range)
+            midi_note = int(np.interp(avg_brightness, [0, 255], [48, 84]))
 
-                # Convert brightness to MIDI note (C3 to C6 range)
-                midi_note = int(np.interp(avg_brightness, [0, 255], [48, 84]))
+            # Create chord (root, major third, perfect fifth)
+            chord = [midi_note, midi_note + 4, midi_note + 7]
 
-                # Create chord (root, major third, perfect fifth)
-                chord = [midi_note, midi_note + 4, midi_note + 7]
+            # Ensure notes are within valid MIDI range
+            chord = [max(0, min(127, note)) for note in chord]
 
-                # Ensure notes are within valid MIDI range
-                chord = [max(0, min(127, note)) for note in chord]
-
-                notes.append(
-                    {
-                        "midi": midi_note,
-                        "chord": chord,
-                        "position": i / num_slices,
-                        "brightness": avg_brightness,
-                    }
-                )
-
-            except Exception as e:
-                print(f"Warning: Error processing slice {i}: {e}")
-                continue
+            notes.append(
+                {
+                    "midi": midi_note,
+                    "chord": chord,
+                    "position": i / num_slices,
+                    "brightness": avg_brightness,
+                }
+            )
 
         if len(notes) == 0:
             raise ValueError("No notes could be extracted from the image")
@@ -154,7 +151,7 @@ def generate_melody_track(
             melody_note = max(note_data["chord"]) + random.choice(
                 [0, 7, 12]
             )  # Add octave variations
-            melody_note = max(48, min(96, melody_note))  # Keep in reasonable range
+            melody_note = max(48, min(96, melody_note))  # Keep in range
 
             velocity = 90 + random.randint(-10, 10)
             note = pretty_midi.Note(
@@ -356,7 +353,7 @@ def generate_ai_harmony(
 
         for interval in chord_pattern:
             chord_note = root_note + interval
-            chord_note = max(36, min(84, chord_note))  # Keep in reasonable range
+            chord_note = max(36, min(84, chord_note))  # Keep in range
 
             velocity = 65 + random.randint(-5, 10)
             note = pretty_midi.Note(
@@ -450,7 +447,7 @@ def create_multi_track_midi_from_notes(
     output_path: str = DEFAULT_OUTPUT_FILE,
     bpm: int = 60,
     duration: int = 8,
-    tracks: List[str] = None,
+    tracks: Union[List[str], None] = None,
 ) -> None:
     """
     Create a multi-track MIDI file from the extracted notes.
@@ -460,7 +457,8 @@ def create_multi_track_midi_from_notes(
         output_path: Path to save the MIDI file
         bpm: Beats per minute for the tempo
         duration: Total duration in seconds
-        tracks: List of tracks to include ['melody', 'harmony', 'percussion', 'bass']
+        tracks: List of tracks to include ['melody', 'harmony',
+            'percussion', 'bass']
     """
     if tracks is None:
         tracks = ["melody", "harmony", "percussion", "bass"]
@@ -546,17 +544,38 @@ def create_midi_from_notes(
     duration: int = 8,
 ) -> None:
     """
-    Create a MIDI file from the extracted notes with enhanced features and error handling.
+    Create a MIDI file from the extracted notes with enhanced features.
     (Legacy single-track function for backward compatibility)
     """
     tracks = ["melody"]  # Default to melody-only for backward compatibility
     create_multi_track_midi_from_notes(notes, output_path, bpm, duration, tracks)
-    """
-    Create a MIDI file from the extracted notes with enhanced features and error handling.
-    (Legacy single-track function for backward compatibility)
-    """
-    tracks = ["melody"]  # Default to melody-only for backward compatibility
-    create_multi_track_midi_from_notes(notes, output_path, bpm, duration, tracks)
+
+
+def _add_ai_track(
+    midi: pretty_midi.PrettyMIDI,
+    track_type: str,
+    notes: List[Dict[str, Any]],
+    duration: int,
+) -> bool:
+    """Helper function to add a single AI track to the MIDI object."""
+    track_generators = {
+        "melody": (generate_ai_melody, "🎵 Generating AI melody..."),
+        "harmony": (generate_ai_harmony, "🎶 Generating AI harmony..."),
+        "bass": (generate_ai_bass, "🎸 Generating AI bass..."),
+        "percussion": (generate_ai_percussion, "🥁 Generating AI percussion..."),
+    }
+    
+    if track_type not in track_generators:
+        return False
+    
+    generator_func, print_msg = track_generators[track_type]
+    print(print_msg)
+    track = generator_func(notes, duration)
+    
+    if track and track.notes:
+        midi.instruments.append(track)
+        return True
+    return False
 
 
 def create_ai_multi_track_midi(
@@ -583,32 +602,8 @@ def create_ai_multi_track_midi(
     track_count = 0
 
     # Generate AI tracks based on selected tracks
-    if "melody" in tracks:
-        print("🎵 Generating AI melody...")
-        melody_track = generate_ai_melody(notes, duration)
-        if melody_track and melody_track.notes:
-            midi.instruments.append(melody_track)
-            track_count += 1
-
-    if "harmony" in tracks:
-        print("🎶 Generating AI harmony...")
-        harmony_track = generate_ai_harmony(notes, duration)
-        if harmony_track and harmony_track.notes:
-            midi.instruments.append(harmony_track)
-            track_count += 1
-
-    if "bass" in tracks:
-        print("🎸 Generating AI bass...")
-        bass_track = generate_ai_bass(notes, duration)
-        if bass_track and bass_track.notes:
-            midi.instruments.append(bass_track)
-            track_count += 1
-
-    if "percussion" in tracks:
-        print("🥁 Generating AI percussion...")
-        percussion_track = generate_ai_percussion(notes, duration)
-        if percussion_track and percussion_track.notes:
-            midi.instruments.append(percussion_track)
+    for track_type in tracks:
+        if _add_ai_track(midi, track_type, notes, duration):
             track_count += 1
 
     # Save the MIDI file

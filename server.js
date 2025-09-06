@@ -29,6 +29,44 @@ app.get("/health", (req, res) => {
   });
 });
 
+// API documentation endpoint
+app.get("/api/docs", (req, res) => {
+  res.json({
+    name: "Hyper Vibe Engine API",
+    version: "1.0.0",
+    description: "Convert images to multi-track MIDI files with AI enhancement",
+    endpoints: {
+      health: {
+        method: "GET",
+        path: "/health",
+        description: "Check server health status"
+      },
+      docs: {
+        method: "GET",
+        path: "/api/docs",
+        description: "Get API documentation"
+      },
+      midiFiles: {
+        method: "GET",
+        path: "/api/midi-files",
+        description: "List all MIDI files in the project"
+      },
+      analyzeImage: {
+        method: "POST",
+        path: "/api/analyze-image",
+        description: "Convert image to MIDI file",
+        body: {
+          imagePath: "string (required) - Path to input image",
+          tracks: "array (optional) - Track types ['melody', 'harmony', 'percussion', 'bass']",
+          bpm: "number (optional) - Tempo in BPM (default: 60)",
+          duration: "number (optional) - Duration in seconds (default: 8)",
+          aiMode: "boolean (optional) - Enable AI enhancement (default: false)"
+        }
+      }
+    }
+  });
+});
+
 // API endpoint for MIDI files
 app.get("/api/midi-files", (req, res) => {
   const midiDir = path.join(__dirname, "..");

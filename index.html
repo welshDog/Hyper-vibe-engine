@@ -79,7 +79,7 @@
               console.log('Arcade start sound played');
             }
           }
-        });
+        }
 
         // Joystick interaction
         const joystick = document.getElementById('joystick');
@@ -814,6 +814,9 @@
 
     <!-- Hidden UI Panel (accessible via secret button) -->
     <div id="ui">
+      <div id="status-indicator" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: rgba(0, 255, 0, 0.8); color: #000; border-radius: 5px; font-size: 10px; font-family: 'Press Start 2P', monospace;">
+        🔗 CONNECTED
+      </div>
       <h1>⚔️ HYPERFOCUS ZONE — VIBE ENGINE</h1>
       <p>🧙‍♂️ Drop Your Artifact — Trigger the Vibe Engine</p>
       <input type="file" id="imageUpload" accept="image/*">

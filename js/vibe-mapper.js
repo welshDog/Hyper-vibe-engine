@@ -27,13 +27,30 @@ let visualizerCtx;
 let animationId;
 
 function userStartAudio() {
-  return Tone.start();
+  return Tone.start().then(() => {
+    // Initialize audio system after user gesture
+    if (!synth) {
+      console.log("Initializing audio system after user gesture...");
+      synth = new Tone.PolySynth(Tone.Synth).toDestination();
+      const reverb = new Tone.Reverb({ decay: 2.5, wet: 0.3 }).toDestination();
+      synth.connect(reverb);
+
+      // Create audio analyser for reactive effects
+      analyser = new Tone.Analyser("fft", 256);
+      synth.connect(analyser);
+
+      // Initialize beat detector
+      beatDetector = new Tone.Analyser("fft", 32);
+
+      console.log("Audio system initialized successfully");
+    }
+  });
 }
 
 function loadImagesAfterUserGesture() {
   if (!imagesLoaded) {
     console.log("Loading images after user gesture...");
-    img = loadImage("assets/default-image.png", () => {
+    img = loadImage("assets/Press Start still Background .jpg", () => {
       // Generate mythic story for the default image
       const imageAnalysis = analyzeImageForStory(img);
       const mythicStory = generateMythicStory(imageAnalysis);
@@ -305,21 +322,12 @@ async function setup() {
 
   imageMode(CENTER);
 
-  // Initialize audio system with analyser
-  synth = new Tone.PolySynth(Tone.Synth).toDestination();
-  const reverb = new Tone.Reverb({ decay: 2.5, wet: 0.3 }).toDestination();
-  synth.connect(reverb);
-
-  // Create audio analyser for reactive effects
-  analyser = new Tone.Analyser("fft", 256);
-  synth.connect(analyser);
-
-  // Initialize beat detector
-  beatDetector = new Tone.Analyser("fft", 32);
+  // Defer audio initialization until user gesture
+  console.log("Audio system initialization deferred until user gesture");
 
   extractNotesFromImage();
 
-  // Start audio reactive updates
+  // Start audio reactive updates (will work once audio is initialized)
   setInterval(updateAudioLevels, 16); // ~60fps updates
 
   // Load Magenta models
@@ -336,7 +344,7 @@ async function setup() {
   Tone.Transport.loopEnd = "8m";
 
   new Tone.Loop((time) => {
-    if (notes.length === 0) return;
+    if (notes.length === 0 || !synth) return;
     const n = notes[colIndex % notes.length];
     synth.triggerAttackRelease(n.notes, "8n", time);
     // Play AI notes if available
@@ -513,14 +521,14 @@ function setupArcadeControls() {
       Tone.Transport.start();
       pressStartBanner.hide();
       // Start sound
-      synth.triggerAttackRelease("G4", "4n");
+      if (synth) synth.triggerAttackRelease("G4", "4n");
     });
   });
 
   // Joystick interaction
   const joystick = select("#joystick");
   joystick.mousePressed(() => {
-    if (isAudioStarted) {
+    if (isAudioStarted && synth) {
       // Joystick sound effect
       synth.triggerAttackRelease("C4", "8n");
     }
@@ -533,28 +541,28 @@ function setupArcadeControls() {
   const greenBtn = select("#greenBtn");
 
   redBtn.mousePressed(() => {
-    if (isAudioStarted) {
+    if (isAudioStarted && synth) {
       synth.triggerAttackRelease("E4", "8n");
       // Could trigger different effects
     }
   });
 
   blueBtn.mousePressed(() => {
-    if (isAudioStarted) {
+    if (isAudioStarted && synth) {
       synth.triggerAttackRelease("G4", "8n");
       // Could trigger different effects
     }
   });
 
   yellowBtn.mousePressed(() => {
-    if (isAudioStarted) {
+    if (isAudioStarted && synth) {
       synth.triggerAttackRelease("A4", "8n");
       // Could trigger different effects
     }
   });
 
   greenBtn.mousePressed(() => {
-    if (isAudioStarted) {
+    if (isAudioStarted && synth) {
       synth.triggerAttackRelease("C5", "8n");
       // Could trigger different effects
     }
@@ -570,14 +578,14 @@ function setupArcadeControls() {
       isAudioStarted = true;
       Tone.Transport.start();
       select("#ui").hide();
-      synth.triggerAttackRelease("G4", "4n");
+      if (synth) synth.triggerAttackRelease("G4", "4n");
     });
   });
 
   let pauseBtn = select("#pauseBtn");
   pauseBtn.mousePressed(() => {
     Tone.Transport.pause();
-    if (isAudioStarted) synth.triggerAttackRelease("A3", "4n");
+    if (isAudioStarted && synth) synth.triggerAttackRelease("A3", "4n");
   });
 
   let testBtn = select("#testBtn");
@@ -864,6 +872,8 @@ function browseLootVault() {
       alert("Failed to browse loot vault");
     });
 }
+
+function createParticles() {
   const particlesContainer = document.getElementById("particles");
 
   for (let i = 0; i < 20; i++) {
@@ -878,7 +888,7 @@ function browseLootVault() {
 
 // Audio reactive functions
 function updateAudioLevels() {
-  if (analyser && isAudioStarted) {
+  if (analyser && synth && isAudioStarted) {
     // Get frequency data for visualization
     const freqData = analyser.getValue();
     audioLevel = 0;
@@ -919,17 +929,25 @@ function draw() {
   // Clear background with solid black
   background(0, 0, 0); // Pure black background
 
-  // Draw the image in the center
-  push();
-  translate(width / 2, height / 2);
-  const s = min(200 / img.width, 200 / img.height);
-  image(img, 0, 0, img.width * s, img.height * s);
+  // Only draw if image is loaded
+  if (img && img.width && img.height) {
+    // Draw the image in the center
+    push();
+    translate(width / 2, height / 2);
+    const s = min(200 / img.width, 200 / img.height);
+    image(img, 0, 0, img.width * s, img.height * s);
 
-  // Display crest
-  if (crest) {
-    image(crest, -100, -100, 40, 40);
+    // Display crest
+    if (crest) {
+      image(crest, -100, -100, 40, 40);
+    }
+    pop();
+  } else {
+    // Show loading message
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text('LOADING IMAGE...', width / 2, height / 2);
   }
-  pop();
 
   // Draw arcade-style UI elements
   drawArcadeUI();
@@ -1039,7 +1057,7 @@ function processUploadedFile(file) {
     updateUploadZone(`✅ ${file.name} loaded successfully!`, 'success');
 
     // Sound cue for upload
-    if (isAudioStarted) synth.triggerAttackRelease("C5", "8n");
+    if (isAudioStarted && synth) synth.triggerAttackRelease("C5", "8n");
 
     // Hide loading spinner
     if (uploadText) uploadText.style.display = 'block';
@@ -1050,7 +1068,7 @@ function processUploadedFile(file) {
 
     // Hide loading spinner on error
     if (uploadText) uploadText.style.display = 'block';
-    if (loadingSpinner) loadingSpinner.style.display = 'none');
+    if (loadingSpinner) loadingSpinner.style.display = 'none';
   });
 }
 
@@ -1135,6 +1153,11 @@ function handleDrop(e) {
 }
 
 function extractNotesFromImage() {
+  if (!img || !img.width || !img.height) {
+    console.log('Image not loaded yet, skipping note extraction');
+    return;
+  }
+
   img.loadPixels();
   const w = img.width;
   const h = img.height;
@@ -1161,3 +1184,30 @@ function extractNotesFromImage() {
     notes.push({ midi, notes: chord });
   }
 }
+
+// Server status check function
+function checkServerStatus() {
+  fetch('/health')
+    .then(response => response.json())
+    .then(data => {
+      const statusIndicator = document.getElementById('status-indicator');
+      if (statusIndicator) {
+        statusIndicator.textContent = '🔗 CONNECTED';
+        statusIndicator.style.background = 'rgba(0, 255, 0, 0.8)';
+      }
+      console.log('Server status:', data);
+    })
+    .catch(error => {
+      const statusIndicator = document.getElementById('status-indicator');
+      if (statusIndicator) {
+        statusIndicator.textContent = '❌ DISCONNECTED';
+        statusIndicator.style.background = 'rgba(255, 0, 0, 0.8)';
+      }
+      console.log('Server status check failed:', error);
+    });
+}
+
+// Check server status on page load
+window.addEventListener('load', () => {
+  setTimeout(checkServerStatus, 1000); // Check after 1 second
+});
